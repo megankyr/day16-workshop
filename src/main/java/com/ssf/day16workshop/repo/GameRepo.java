@@ -32,6 +32,11 @@ public class GameRepo {
     public Game getGame(String id) {
         String key = GAME_HASH_KEY + ":" + id;
         Map<Object, Object> gameData = template.opsForHash().entries(key);
+
+        if (gameData.isEmpty()) {
+            return null;
+        }
+
         Game game = new Game();
         game.setGid(Integer.parseInt(gameData.get("gid").toString()));
         game.setName(gameData.get("name").toString());
