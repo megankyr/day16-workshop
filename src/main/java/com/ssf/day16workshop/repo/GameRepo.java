@@ -30,6 +30,7 @@ public class GameRepo {
     }
 
     public Game getGame(String id) {
+
         String key = GAME_HASH_KEY + ":" + id;
         Map<Object, Object> gameData = template.opsForHash().entries(key);
 
@@ -47,6 +48,15 @@ public class GameRepo {
 
         return game;
 
+    }
+
+    public boolean updateGame(String id, Game updatedGame) {
+        String key = GAME_HASH_KEY + ":" + id;
+        if (template.hasKey(key)) {
+            saveGame(updatedGame);
+            return true;
+        }
+        return false;
     }
 
 }

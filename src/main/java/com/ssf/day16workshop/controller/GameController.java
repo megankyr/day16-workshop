@@ -12,7 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ssf.day16workshop.model.Game;
@@ -77,4 +80,35 @@ public class GameController {
         }
     }
 
+    @PutMapping("/api/boardgame/{id}")
+    public ResponseEntity<Map<String, Object>> updateGame(
+            @PathVariable String id,
+            @RequestBody Game updatedGame,
+            @RequestParam(name = "upsert", defaultValue = "false") boolean upsert) {
+        try {
+            Game existingGame = gameRepo.getGame(id);
+            if (existingGame != null) {
+                gameRepo.updateGame(id, updatedGame);
+                Map<String, Object> responsePayload = new HashMap<>();
+                responsePayload.put("update_count", 1);
+                responsePayload.put("id", id);
+                return ResponseEntity.status(HttpStatus.OK).body(responsePayload);
+            } else {
+                if (upsert) {
+                    gameRepo.saveGame(updatedGame);
+                    Map<String, Object> responsePayload = new HashMap<>();
+                    responsePayload.put("update_count", 1);
+                    responsePayload.put("id", id);
+                    return ResponseEntity.status(HttpStatus.OK).body(responsePayload);
+                } else {
+                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                            .body(Collections.singletonMap("error", "Game not found"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.singletonMap("error", "Internal Server Error"));
+        }
+    }
 }
